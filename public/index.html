@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOUSE AI | IPTV PRO MAX</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo"><i class="fas fa-desktop"></i> MOUSE AI</div>
+            <div id="connection-status"><i class="fas fa-signal"></i> مباشر</div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <p>روابطك السريعة:</p>
+                    <div class="quick-links">
+                        <button onclick="playLink(1)">1</button>
+                        <button onclick="playLink(2)">2</button>
+                        <button onclick="playLink(3)">3</button>
+                        <button onclick="playLink(4)">4</button>
+                    </div>
+
+                    <select id="sourceSelector" onchange="fetchM3U(this.value)">
+                        <option value="">-- اختر قائمة قنوات --</option>
+                        <optgroup label="القوائم العربية">
+                            <option value="https://iptv-org.github.io/iptv/languages/ara.m3u">🌍 جميع القنوات العربية</option>
+                            <option value="https://iptv-org.github.io/iptv/categories/sports.m3u">⚽ القنوات الرياضية</option>
+                        </optgroup>
+                        <optgroup label="الدول">
+                            <option value="https://iptv-org.github.io/iptv/countries/eg.m3u">🇪🇬 مصر</option>
+                            <option value="https://iptv-org.github.io/iptv/countries/ma.m3u">🇲🇦 المغرب</option>
+                            <option value="https://iptv-org.github.io/iptv/countries/dz.m3u">🇩🇿 الجزائر</option>
+                            <option value="https://iptv-org.github.io/iptv/countries/sa.m3u">🇸🇦 السعودية</option>
+                        </optgroup>
+                    </select>
+
+                    <input type="text" id="searchBar" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels()">
+                </div>
+
+                <div id="loader" class="loading-overlay">جاري تحميل القنوات...</div>
+                <div class="channels-list" id="channelsList"></div>
+            </aside>
+
+            <main class="player-area">
+                <div class="video-wrapper">
+                    <video id="videoPlayer" controls playsinline poster="https://i.imgur.com/8DAriPs.png"></video>
+                </div>
+                <div class="player-info">
+                    <h3 id="playingTitle">جاهز للبث...</h3>
+                    <p id="playingUrl"></p>
+                </div>
+
+                <div class="chat-box">
+                    <h4>دردشة مباشرة</h4>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <input type="text" id="chatInput" placeholder="اكتب رسالة..." onkeypress="sendMessage(event)">
+                </div>
+            </main>
+        </div>
+
+        <footer>
+            حقوق النشر © 2025 MOUSE AI. جميع الحقوق محفوظة.
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
