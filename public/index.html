@@ -3,205 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DZ-AI IPTV CHAT | PRO</title>
+    <title>MISTER AI | IPTV ULTRA PRO</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --main-color: #00f2ff;
-            --bg-dark: #06090f;
-            --sidebar-bg: #0c121d;
-            --card-bg: #161f2e;
-            --text-main: #e2e8f0;
-            --accent: #ff0055;
+            --neon-blue: #00f2ff;
+            --dark-bg: #020617;
+            --glass: rgba(30, 41, 59, 0.7);
+            --error: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        
-        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; }
+        body { background: var(--dark-bg); color: white; height: 100vh; overflow: hidden; }
 
-        /* الهيكل الأساسي */
-        .app-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr 300px; /* القائمة | المشغل | الدردشة */
-            height: 100vh;
+        .app-layout { display: grid; grid-template-columns: 380px 1fr; height: 100vh; }
+
+        /* منطقة القنوات */
+        .sidebar { background: #0f172a; border-left: 1px solid #1e293b; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar-head { padding: 25px; background: linear-gradient(to bottom, #1e293b, transparent); }
+        .logo { font-size: 1.6rem; font-weight: 900; color: var(--neon-blue); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+
+        /* أزرار مصطفى الملونة */
+        .misterai-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .custom-btn { 
+            background: var(--glass); border: 1px solid var(--neon-blue); color: var(--neon-blue);
+            padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .custom-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+
+        /* قائمة القنوات */
+        .channel-list { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: thin; }
+        .chan-item { 
+            display: flex; align-items: center; gap: 15px; padding: 12px; 
+            background: var(--glass); margin-bottom: 10px; border-radius: 15px;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .chan-item:hover { border-color: var(--neon-blue); background: #1e293b; transform: translateX(-5px); }
+        .chan-item img { width: 45px; height: 45px; border-radius: 10px; object-fit: contain; background: white; }
+
+        /* منطقة المشغل الرئيسي */
+        .player-main { display: flex; flex-direction: column; position: relative; background: #000; }
+        .video-box { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; position: relative; }
+        video { width: 100%; max-height: 100vh; outline: none; box-shadow: 0 0 100px rgba(0, 242, 255, 0.1); }
+
+        /* تنبيهات الخطأ */
+        #errorOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 5;
         }
 
-        /* القائمة الجانبية للقنوات */
-        .channels-side { background: var(--sidebar-bg); border-left: 1px solid #1e293b; display: flex; flex-direction: column; }
-        
-        .nav-header { padding: 20px; background: rgba(0,0,0,0.2); border-bottom: 2px solid var(--main-color); }
-        .logo { font-size: 1.4rem; font-weight: 900; color: var(--main-color); text-shadow: 0 0 10px rgba(0,242,255,0.3); }
+        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--neon-blue); border-radius: 50%; animation: spin 1s linear infinite; display: none; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* منطقة الفيديو */
-        .video-main { background: #000; position: relative; display: flex; flex-direction: column; }
-        .video-container { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); }
-        video { width: 100%; max-height: 100%; outline: none; }
-
-        /* واجهة الدردشة الذكية */
-        .chat-side { background: var(--sidebar-bg); border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 0.9rem; }
-        .chat-input-area { padding: 15px; background: var(--card-bg); display: flex; gap: 5px; }
-        .msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 10px; max-width: 85%; }
-        .msg.ai { background: var(--main-color); color: #000; align-self: flex-start; }
-        .msg.user { background: #334155; align-self: flex-end; margin-right: auto; }
-
-        /* تحسين الأزرار والقوائم */
-        .btn-action { background: var(--main-color); border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .source-select { width: 100%; background: var(--card-bg); color: white; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-top: 10px; }
-
-        .channel-list-items { overflow-y: auto; flex: 1; padding: 10px; }
-        .channel-card {
-            display: flex; align-items: center; gap: 12px; padding: 10px;
-            background: var(--card-bg); margin-bottom: 8px; border-radius: 8px;
-            cursor: pointer; transition: 0.3s; border: 1px solid transparent;
-        }
-        .channel-card:hover { border-color: var(--main-color); transform: scale(1.02); }
-        .channel-card img { width: 40px; height: 40px; border-radius: 5px; object-fit: contain; background: #fff; }
-
-        /* Responsive */
-        @media (max-width: 1100px) {
-            .app-grid { grid-template-columns: 1fr; overflow-y: auto; }
-            .channels-side, .chat-side { height: 500px; }
-            .video-container { height: 300px; }
+        @media (max-width: 900px) {
+            .app-layout { grid-template-columns: 1fr; }
+            .sidebar { height: 50vh; order: 2; }
+            .player-main { height: 50vh; order: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-grid">
-        <aside class="channels-side">
-            <div class="nav-header">
-                <div class="logo"><i class="fas fa-robot"></i> DZ-AI IPTV</div>
-                <select class="source-select" id="m3uSource" onchange="loadM3U(this.value)">
-                    <option value="">-- اختر قائمة القنوات --</option>
-                    <option value="https://iptv-org.github.io/iptv/languages/ara.m3u">🌍 القنوات العربية</option>
-                    <option value="https://iptv-org.github.io/iptv/categories/sports.m3u">⚽ القنوات الرياضية</option>
-                </select>
-                <input type="text" id="search" placeholder="بحث عن قناة..." class="source-select" oninput="searchChannels()">
-            </div>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-head">
+            <div class="logo"><i class="fas fa-microchip"></i> DZ-AI IPTV</div>
             
-            <div class="channel-list-items" id="channelList">
-                </div>
-        </aside>
+            <div class="misterai-grid">
+                <button class="custom-btn" onclick="playMister(1)"><i class="fas fa-play"></i> قناة 1</button>
+                <button class="custom-btn" onclick="playMister(2)"><i class="fas fa-play"></i> قناة 2</button>
+                <button class="custom-btn" onclick="playMister(3)"><i class="fas fa-play"></i> قناة 3</button>
+                <button class="custom-btn" onclick="playMister(4)"><i class="fas fa-play"></i> قناة 4</button>
+            </div>
 
-        <main class="video-main">
-            <div class="video-container">
-                <video id="player" controls playsinline></video>
-            </div>
-            <div style="padding: 15px; border-top: 1px solid #1e293b;">
-                <h3 id="nowPlaying" style="color: var(--main-color);">مرحباً بك MisterAI</h3>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="btn-action" onclick="playCustom(1)">بث 1</button>
-                    <button class="btn-action" onclick="playCustom(2)">بث 2</button>
-                    <button class="btn-action" onclick="playCustom(3)">بث 3</button>
-                </div>
-            </div>
-        </main>
+            <select id="sourceSelect" onchange="loadExternalM3U(this.value)" 
+                style="width:100%; padding:12px; border-radius:10px; background:#1e293b; color:white; border:1px solid var(--neon-blue);">
+                <option value="">-- اختر قائمة القنوات --</option>
+                <option value="https://iptv-org.github.io/iptv/languages/ara.m3u">🌍 القنوات العربية</option>
+                <option value="https://iptv-org.github.io/iptv/categories/sports.m3u">⚽ القنوات الرياضية</option>
+                <option value="https://iptv-org.github.io/iptv/countries/dz.m3u">🇩🇿 الجزائر</option>
+            </select>
+            <div id="mainLoader" class="loader"></div>
+        </div>
 
-        <aside class="chat-side">
-            <div class="nav-header">
-                <div style="font-weight: bold;"><i class="fas fa-comment-dots"></i> مساعد AI</div>
+        <div class="channel-list" id="listBody">
             </div>
-            <div class="chat-messages" id="chatMsgs">
-                <div class="msg ai">أهلاً مصطفى! كيف يمكنني مساعدتك في العثور على قنوات اليوم؟</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="اسأل MisterAI..." class="source-select" style="margin:0;">
-                <button class="btn-action" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </aside>
-    </div>
+    </aside>
 
-    <script>
-        const video = document.getElementById('player');
-        const hls = new Hls();
-        let allChannels = [];
+    <main class="player-main">
+        <div class="video-box">
+            <video id="iptvPlayer" controls playsinline poster="https://i.imgur.com/8DAriPs.png"></video>
+            
+            <div id="errorOverlay">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--error);"></i>
+                <p id="errorMsg" style="margin-top: 15px; text-align: center; padding: 0 20px;">عذراً، هذا الرابط غير متاح حالياً أو يتطلب VPN</p>
+                <button class="custom-btn" style="margin-top: 20px;" onclick="document.getElementById('errorOverlay').style.display='none'">إغلاق</button>
+            </div>
+        </div>
+        
+        <div style="padding: 20px; background: #0f172a; border-top: 1px solid #1e293b;">
+            <h2 id="liveTitle" style="color: var(--neon-blue);">جاهز للتشغيل...</h2>
+            <p id="liveInfo" style="font-size: 0.8rem; opacity: 0.6; margin-top: 5px;"></p>
+        </div>
+    </main>
+</div>
 
-        // تشغيل روابطك الخاصة
-        const myLinks = {
-            1: "http://185.226.172.11:8080/mo3ad/mo3ad1.m3u8",
-            2: "http://185.226.172.11:8080/mo3ad/mo3ad2.m3u8",
-            3: "http://185.226.172.11:8080/mo3ad/mo3ad3.m3u8"
+<script>
+    const video = document.getElementById('iptvPlayer');
+    const hls = new Hls();
+    let channelData = [];
+
+    // روابطك الخاصة - تأكد أنها تعمل في المتصفح
+    const mySources = {
+        1: "http://185.226.172.11:8080/mo3ad/mo3ad1.m3u8",
+        2: "http://185.226.172.11:8080/mo3ad/mo3ad2.m3u8",
+        3: "http://185.226.172.11:8080/mo3ad/mo3ad3.m3u8",
+        4: "http://185.226.172.11:8080/mo3ad/mo3ad4.m3u8"
+    };
+
+    function playMister(id) {
+        startStreaming(mySources[id], `قناة MisterAI المباشرة ${id}`);
+    }
+
+    async function loadExternalM3U(url) {
+        if(!url) return;
+        const loader = document.getElementById('mainLoader');
+        const listBody = document.getElementById('listBody');
+        
+        loader.style.display = 'block';
+        listBody.innerHTML = '';
+
+        try {
+            // استخدام Proxy لتجاوز قيود CORS التي تمنع التحميل
+            const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+            const response = await fetch(proxyUrl);
+            const data = await response.text();
+            parseM3UContent(data);
+        } catch (e) {
+            alert("فشل جلب القائمة. تحقق من اتصالك.");
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    function parseM3UContent(text) {
+        const lines = text.split('\n');
+        channelData = [];
+        let currentItem = {};
+
+        lines.forEach(line => {
+            line = line.trim();
+            if(line.startsWith('#EXTINF:')) {
+                const info = line.split(',');
+                currentItem.name = info[1] || "قناة غير معروفة";
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                currentItem.logo = logoMatch ? logoMatch[1] : 'https://via.placeholder.com/50?text=TV';
+            } else if(line.startsWith('http')) {
+                currentItem.url = line;
+                channelData.push({...currentItem});
+                currentItem = {};
+            }
+        });
+        renderList(channelData);
+    }
+
+    function renderList(list) {
+        const container = document.getElementById('listBody');
+        container.innerHTML = list.map((ch, index) => `
+            <div class="chan-item" onclick="startStreaming('${ch.url}', '${ch.name}')">
+                <img src="${ch.logo}" onerror="this.src='https://via.placeholder.com/50?text=TV'">
+                <div style="font-weight:bold;">${ch.name}</div>
+            </div>
+        `).join('');
+    }
+
+    function startStreaming(url, name) {
+        const errorOverlay = document.getElementById('errorOverlay');
+        errorOverlay.style.display = 'none';
+        document.getElementById('liveTitle').innerText = name;
+        document.getElementById('liveInfo').innerText = url;
+
+        // معالجة الخطأ إذا كان الرابط لا يعمل
+        video.onerror = function() {
+            errorOverlay.style.display = 'flex';
+            document.getElementById('errorMsg').innerText = "خطأ في تشغيل: " + name + "\n الرابط قد يكون متوقفاً أو يحتاج مشغل خاص.";
         };
 
-        function playCustom(id) {
-            startStream(myLinks[id], "قناتك الخاصة رقم " + id);
-        }
-
-        // جلب قائمة M3U ومعالجتها
-        async function loadM3U(url) {
-            if(!url) return;
-            const res = await fetch(url);
-            const text = await res.text();
-            parseM3U(text);
-        }
-
-        function parseM3U(data) {
-            const lines = data.split('\n');
-            allChannels = [];
-            let current = {};
-            lines.forEach(line => {
-                if(line.startsWith('#EXTINF:')) {
-                    current.name = line.split(',')[1] || "Unknown";
-                    const logo = line.match(/tvg-logo="([^"]+)"/);
-                    current.logo = logo ? logo[1] : 'https://via.placeholder.com/40';
-                } else if(line.startsWith('http')) {
-                    current.url = line.trim();
-                    allChannels.push({...current});
-                    current = {};
+        if (Hls.isSupported()) {
+            hls.destroy(); // تنظيف المشغل القديم تماماً
+            const newHls = new Hls();
+            newHls.loadSource(url);
+            newHls.attachMedia(video);
+            newHls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            
+            // معالجة أخطاء HLS
+            newHls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    errorOverlay.style.display = 'flex';
                 }
             });
-            renderChannels(allChannels);
+        } 
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+            video.play();
         }
-
-        function renderChannels(list) {
-            const container = document.getElementById('channelList');
-            container.innerHTML = list.map(ch => `
-                <div class="channel-card" onclick="startStream('${ch.url}', '${ch.name}')">
-                    <img src="${ch.logo}" onerror="this.src='https://via.placeholder.com/40'">
-                    <div class="channel-name">${ch.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function startStream(url, name) {
-            document.getElementById('nowPlaying').innerText = name;
-            if (Hls.isSupported()) {
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-            } else {
-                video.src = url;
-                video.play();
-            }
-        }
-
-        // نظام الدردشة البسيط
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const msg = input.value;
-            if(!msg) return;
-            
-            const container = document.getElementById('chatMsgs');
-            container.innerHTML += `<div class="msg user">${msg}</div>`;
-            input.value = '';
-            
-            // رد آلي بسيط كمثال لـ AI
-            setTimeout(() => {
-                container.innerHTML += `<div class="msg ai">فهمتك يا مصطفى، سأبحث لك عن ذلك في القنوات المتاحة.</div>`;
-                container.scrollTop = container.scrollHeight;
-            }, 1000);
-        }
-
-        function searchChannels() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const filtered = allChannels.filter(c => c.name.toLowerCase().includes(query));
-            renderChannels(filtered);
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
